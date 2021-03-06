@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>POSTAL ADDRESS SEARCH</title>
+    </head>
+    <body>
+        <h1>SEARCH FOR ADDRESSES</h1>
+        <p>Select Country</p>
+        <select id ="ddlCountries" onchange = "ChangeAddressComponents()">
+        </select>
+        <p>Address Components: </p>
+        <div id="componentTextBox"></div>
+        <button onclick="SendPayload()">Find Addresses</button>
+
+        <script type = "text/javascript">
+            function PopulateDropDown() {
+                //Get countries list JSON object from API
+                fetch('/countries')
+                .then(function (response) {
+                    return response.json();
+                }).then(function (text) {
+                    var countryList = JSON.parse(text);
+                    console.log(countryList);
+                    //var countryList = {"countries":["France", "Spain", "England"]}; //test data
+
+                    var ddlCountries = document.getElementById("ddlCountries");
+                    //get size of Object
+                    Object.size = function(obj) {
+                        var size = 0,
+                            key;
+                        for (key in obj) {
+                            if (obj.hasOwnProperty(key)) size++;
+                        }
+                        return size;
+                        };
+
+                    var size = Object.size(countryList.countries);
+                    //Add json list options to DropDownList
+                    console.log(size);
+                    for (var i = 0; i < size; i++){
+                        console.log(countryList.countries[i]);
+                        var option = document.createElement('option');
+                        option.value = i;
+                        option.innerHTML = countryList.countries[i];
+                        ddlCountries.options.add(option);
+                }
+                });
+            }
+            //On page load, populate the country drop down menu
+            window.onload = PopulateDropDown;
+
+            //When country is selected change to allow for only specific address components 
+            function ChangeAddressComponents() {
+                //Get selected item in dropdown
+                var e = document.getElementById("ddlCountries");
+                var selectedCountry = e.options[e.selectedIndex].text;
+                console.log(selectedCountry);
+
+                //Go to API and get country components
+                /*fetch(`/addresscomponents/${selectedCountry}`)
+                .then(function (response) {
+                    return response.json();
+                }).then(function (text) {
+                    var addressComponentsList = JSON.parse(text);
+                    console.log(addressComponentsList);
+                    console.log('GET response text:');
+                    console.log(text);
+                });*/
+
+                var addressComponentsList = {"address components":["zip code", "street number", "country code"]}; //test data
+                console.log(addressComponentsList);
+                //get size of Object
+                Object.size = function(obj) {
+                        var size = 0,
+                            key;
+                        for (key in obj) {
+                            if (obj.hasOwnProperty(key)) size++;
+                        }
+                        return size;
+                        };
+
+                //Delete all old text boxes
+                const myNode = document.getElementById("componentTextBox");
+                myNode.innerHTML='';
+
+                //Add new text box for each address component
+                var numberOfComponents = Object.size(addressComponentsList['address components']);
+                console.log(numberOfComponents);
+                for (var i = 0; i < numberOfComponents; i++){
+                    //Create an input type dynamically
+                    var element = document.createElement("input");
+
+                    //Create labels
+                    var label = document.createElement("Label");
+                    label.innerHTML = addressComponentsList['address components'][i];
+
+                    //Assign different attributes to the element. 
+                    element.setAttribute("type", "text");
+                    element.setAttribute("value", "");
+                    element.setAttribute("style", "width:200px");
+
+                    label.setAttribute("style", "font-weight:normal");
+
+                    var textBoxes = document.getElementById("componentTextBox");
+
+                    textBoxes.appendChild(label);
+                    textBoxes.appendChild(element);
+                }
+            }
+
+            function SendPayload() {
+                //create object based on address components and the information entered by user
+                
+                //json-ify it
+
+                //tap Address_API.SearchAddress with that JSON object
+
+                //print the returned list of addresses
+            }
+        </script>
+    </body>
+</html>
