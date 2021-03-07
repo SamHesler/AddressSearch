@@ -20,29 +20,87 @@ class Countries(Resource):
         myresult = dbConnection("SHOW TABlES")
         for country in myresult:
             countries.append(country[0])
+        countries.append("worldwide")
         #return to client
         return {'countries': countries}
 
-class AddressCompoents(Resource):
+class AddressComponents(Resource):
     def post(self, country):
         reply = []
         #call to the database to get a list of address components
-        myresult = dbConnection("SHOW COLUMNS FROM " + country)
-        for x in myresult:
-            #print(x) 
-            reply.append(x[0]) #<- this is just pulling the column names
-        #print(myresult)
+        if country == "worldwide": #<- world wide search case
+            allCountries = []
+            tables = dbConnection("SHOW TABLES")
+            for table in tables:
+                allCountries.append(table[0])
+            for c in allCountries:
+                components = dbConnection("SHOW COLUMNS FROM " + "`" + c + "`")
+                for component in components:
+                    if component[0] not in reply:
+                        reply.append(component[0])
+        else: #<- specific country search
+            myresult = dbConnection("SHOW COLUMNS FROM " + "`" + country + "`")
+            for x in myresult: 
+                reply.append(x[0]) #<- this is just pulling the column names
         #return to client
+        reply = sorted(reply)
         return {'address components': reply}
+
+global LIMIT 
+LIMIT = 50
 
 class SearchAddress(Resource):
     def post(self):
         searchCriteria = request.form.to_dict()
+        reply = {}
         #some call to the database to get a list of matching addresses
-        return searchCriteria
+        if searchCriteria['country'] == "worldwide":  
+            searchCriteria.pop('country')
+            givenComponents = searchCriteria.keys()
+            allCountries = []
+            countriesToSearch = []
+            tables = dbConnection("SHOW TABLES")
+            for table in tables:
+                allCountries.append(table[0])
+            for country in allCountries:
+                countryComponents = dbConnection("SHOW COLUMNS FROM " + "`" + country + "`")
+                cleanCountryComponents = []
+                for component in countryComponents:
+                    cleanCountryComponents.append(component[0])
+                if all(item in cleanCountryComponents for item in givenComponents):
+                    countriesToSearch.append(country)
+            #reply = countriesToSearch
+            sqlCommandPart1 = "SELECT * FROM `"
+            sqlCommandPart2 = "` WHERE "
+            first = True
+            for key in givenComponents:
+                if not first:
+                    sqlCommandPart2 = sqlCommandPart2 + " AND "
+                sqlCommandPart2 = sqlCommandPart2 + key + " = '" + searchCriteria[key] +"'"
+                first = False
+            sqlCommandPart2 = sqlCommandPart2 + " LIMIT " + str(LIMIT)
+            for country in countriesToSearch:
+                search = dbConnection(sqlCommandPart1 + country + sqlCommandPart2)
+                if search != []:
+                    reply[country] = search
+        else:
+            sqlCommand = "SELECT * FROM `" + searchCriteria["country"] + "` WHERE "
+            first = True
+            for key in searchCriteria.keys():
+                if key != 'country':
+                    if not first:
+                        sqlCommand = sqlCommand + " AND "
+                    sqlCommand = sqlCommand + key + " = '" + searchCriteria[key] +"'"
+                    first = False
+            sqlCommand = sqlCommand + " LIMIT " + str(LIMIT)
+            reply[searchCriteria["country"]] = dbConnection(sqlCommand)
+
+
+
+        return reply
 
 api.add_resource(Countries, "/countries")
-api.add_resource(AddressCompoents, "/addresscomponents/<string:country>")
+api.add_resource(AddressComponents, "/addresscomponents/<string:country>")
 api.add_resource(SearchAddress, "/searchaddress")
 
 

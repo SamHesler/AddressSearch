@@ -18,27 +18,27 @@ class Countries(Resource):
     def get(self):
         countries = []
         #call to the database
-        #myresult = dbConnection("SHOW TABlES")
-        #for country in myresult:
-        #    countries.append(country[0])
+        myresult = dbConnection("SHOW TABlES")
+        for country in myresult:
+           countries.append(country[0])
         #return to client
-        return '{"countries":["France", "Spain", "England"]}'
+        return {"countries": countries}
 
 class AddressCompoents(Resource):
-    def post(self, country):
+    def get(self, country):
         reply = []
         #call to the database to get a list of address components
-        #myresult = dbConnection("SHOW COLUMNS FROM " + country)
-        #for x in myresult:
-            #print(x) 
-            #reply.append(x[0]) #<- this is just pulling the column names
-        #print(myresult)
+        myresult = dbConnection("SHOW COLUMNS FROM " + country)
+        for x in myresult:
+            print(x) 
+            reply.append(x[0]) #<- this is just pulling the column names
+        print(myresult)
         #return to client
-        #return {'address components': reply}
-        return '{"address components":["zip code", "street name", "postal code"]}'
+        return {'address components': reply}
+        #return '{"address components":["zip code", "street name", "postal code"]}'
 
 class SearchAddress(Resource):
-    def post(self):
+    def get(self):
         searchCriteria = request.form.to_dict()
         #some call to the database to get a list of matching addresses
         #return searchCriteria

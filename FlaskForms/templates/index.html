@@ -19,7 +19,8 @@
                 .then(function (response) {
                     return response.json();
                 }).then(function (text) {
-                    var countryList = JSON.parse(text);
+                    //var countryList = JSON.parse(text);
+                    var countryList = text;
                     console.log(countryList);
                     //var countryList = {"countries":["France", "Spain", "England"]}; //test data
 
@@ -57,29 +58,16 @@
                 console.log(selectedCountry);
 
                 //Go to API and get country components
-                /*fetch(`/addresscomponents/${selectedCountry}`)
+                fetch(`/addresscomponents/${selectedCountry}`)
                 .then(function (response) {
                     return response.json();
                 }).then(function (text) {
-                    var addressComponentsList = JSON.parse(text);
+                    //var addressComponentsList = JSON.parse(text);
+                    var addressComponentsList = text;
                     console.log(addressComponentsList);
                     console.log('GET response text:');
                     console.log(text);
-                });*/
-
-                var addressComponentsList = {"address components":["zip code", "street number", "country code"]}; //test data
-                console.log(addressComponentsList);
-                //get size of Object
-                Object.size = function(obj) {
-                        var size = 0,
-                            key;
-                        for (key in obj) {
-                            if (obj.hasOwnProperty(key)) size++;
-                        }
-                        return size;
-                        };
-
-                //Delete all old text boxes
+                     //Delete all old text boxes
                 const myNode = document.getElementById("componentTextBox");
                 myNode.innerHTML='';
 
@@ -106,6 +94,21 @@
                     textBoxes.appendChild(label);
                     textBoxes.appendChild(element);
                 }
+                });
+
+                //var addressComponentsList = {"address components":["zip code", "street number", "country code"]}; //test data
+                //console.log(addressComponentsList);
+                //get size of Object
+                Object.size = function(obj) {
+                        var size = 0,
+                            key;
+                        for (key in obj) {
+                            if (obj.hasOwnProperty(key)) size++;
+                        }
+                        return size;
+                        };
+
+               
             }
 
             function SendPayload() {
