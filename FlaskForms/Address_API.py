@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, render_template
 from flask_restful import Api, Resource
 import mysql.connector
 
@@ -13,7 +13,6 @@ def dbConnection(command):
     mycursor.execute(command)
     return mycursor.fetchall()
 
-# I commented out the database calls since the DB is local :)
 class Countries(Resource):
     def get(self):
         countries = []
@@ -25,7 +24,7 @@ class Countries(Resource):
         #return to client
         return {'countries': countries}
 
-class AddressCompoents(Resource):
+class AddressComponents(Resource):
     def get(self, country):
         reply = []
         #call to the database to get a list of address components
@@ -98,9 +97,8 @@ class SearchAddress(Resource):
         return reply
 
 api.add_resource(Countries, "/countries")
-api.add_resource(AddressCompoents, "/addresscomponents/<string:country>")
+api.add_resource(AddressComponents, "/addresscomponents/<string:country>")
 api.add_resource(SearchAddress, "/searchaddress")
-
 
 @app.route("/")
 def index():
