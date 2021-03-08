@@ -19,7 +19,7 @@ print()
 
 
 input = responseCountries['countries'][12]
-responseComponents = requests.post(ADDRESS_COMPONENTS + input)
+responseComponents = requests.get(ADDRESS_COMPONENTS + input)
 responseComponents = responseComponents.json()
 print("*** Call to post ***")
 print("input: ", input)
@@ -29,7 +29,7 @@ print()
 
 
 input = "worldwide"
-responseComponents = requests.post(ADDRESS_COMPONENTS + input)
+responseComponents = requests.get(ADDRESS_COMPONENTS + input)
 responseComponents = responseComponents.json()
 print("*** Call to post ***")
 print("input: ", input)

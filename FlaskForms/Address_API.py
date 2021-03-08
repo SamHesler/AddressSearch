@@ -10,8 +10,15 @@ def dbConnection(command):
                               host='127.0.0.1',
                               database='addresses')
     mycursor = db.cursor()
-    mycursor.execute(command)
-    return mycursor.fetchall()
+    if (type(command) is str):  
+        mycursor.execute(command)
+        return mycursor.fetchall()
+    results = []
+    for com in command:
+        mycursor.execute(com)
+        results.append(mycursor.fetchall())
+    return results
+
 
 class Countries(Resource):
     def get(self):
@@ -29,13 +36,16 @@ class AddressComponents(Resource):
         reply = []
         #call to the database to get a list of address components
         if country == "worldwide": #<- world wide search case
+            commands = []
             allCountries = []
             tables = dbConnection("SHOW TABLES")
             for table in tables:
                 allCountries.append(table[0])
             for c in allCountries:
-                components = dbConnection("SHOW COLUMNS FROM " + "`" + c + "`")
-                for component in components:
+                commands.append("SHOW COLUMNS FROM " + "`" + c + "`")
+            result = dbConnection(commands)
+            for res in result:
+                for component in res:
                     if component[0] not in reply:
                         reply.append(component[0])
         else: #<- specific country search
@@ -43,7 +53,6 @@ class AddressComponents(Resource):
             for x in myresult: 
                 reply.append(x[0]) #<- this is just pulling the column names
         #return to client
-        reply = sorted(reply)
         return {'address components': reply}
 
 global LIMIT 
@@ -51,14 +60,32 @@ LIMIT = 50
 
 class SearchAddress(Resource):
     def post(self):
-        searchCriteria = request.form.to_dict()
         reply = {}
+        searchCriteria = request.form.to_dict()
         #some call to the database to get a list of matching addresses
+        print (searchCriteria)
         if searchCriteria['country'] == "worldwide":  
             searchCriteria.pop('country')
             givenComponents = searchCriteria.keys()
             allCountries = []
             countriesToSearch = []
+
+            
+            commands = []
+            tables = dbConnection("SHOW TABLES")
+            for table in tables:
+                allCountries.append(table[0])
+            for country in allCountries:
+                commands.append("SHOW COLUMNS FROM " + "`" + country + "`")
+            results = dbConnection(commands)
+            for count, res in enumerate(results):
+                cleanCountryComponents = []
+                for component in res:
+                    cleanCountryComponents.append(component[0])
+                if all(item in cleanCountryComponents for item in givenComponents):
+                    countriesToSearch.append(allCountries[count])
+            print(countriesToSearch)
+            '''
             tables = dbConnection("SHOW TABLES")
             for table in tables:
                 allCountries.append(table[0])
@@ -69,6 +96,7 @@ class SearchAddress(Resource):
                     cleanCountryComponents.append(component[0])
                 if all(item in cleanCountryComponents for item in givenComponents):
                     countriesToSearch.append(country)
+            '''
             #reply = countriesToSearch
             sqlCommandPart1 = "SELECT * FROM `"
             sqlCommandPart2 = "` WHERE "
@@ -79,10 +107,16 @@ class SearchAddress(Resource):
                 sqlCommandPart2 = sqlCommandPart2 + key + " = '" + searchCriteria[key] +"'"
                 first = False
             sqlCommandPart2 = sqlCommandPart2 + " LIMIT " + str(LIMIT)
+
+            commands = []
             for country in countriesToSearch:
-                search = dbConnection(sqlCommandPart1 + country + sqlCommandPart2)
-                if search != []:
-                    reply[country] = search
+                commands.append(sqlCommandPart1 + country + sqlCommandPart2)
+            results = dbConnection(commands)
+            for count, result in enumerate(results):
+                if result != []:
+                    reply[countriesToSearch[count]] = result
+
+        
         else:
             sqlCommand = "SELECT * FROM `" + searchCriteria["country"] + "` WHERE "
             first = True

@@ -31,16 +31,12 @@
                     return response.json();
                 }).then(function (text) {
                     var countryList = text;
-                    console.log(countryList);
-                    //var countryList = {"countries":["France", "Spain", "England"]}; //test data
-
+                    
                     var ddlCountries = document.getElementById("ddlCountries");
 
                     var size = Object.size(countryList.countries);
                     //Add json list options to DropDownList
-                    console.log(size);
                     for (var i = 0; i < size; i++){
-                        console.log(countryList.countries[i]);
                         var option = document.createElement('option');
                         option.value = i;
                         option.innerHTML = countryList.countries[i];
@@ -57,7 +53,6 @@
                 //Get selected item in dropdown
                 var e = document.getElementById("ddlCountries");
                 selectedCountry = e.options[e.selectedIndex].text;
-                console.log(selectedCountry);
 
                 //Go to API and get country components
                 fetch(`/addresscomponents/${selectedCountry}`)
@@ -65,12 +60,6 @@
                     return response.json();
                 }).then(function (text) {
                     var addressComponentsList = text;
-                    console.log(addressComponentsList);
-                    console.log('GET response text:');
-                    console.log(text);
-
-                //var addressComponentsList = {"address components":["zip code", "street number", "country code"]}; //test data
-                //console.log(addressComponentsList);
 
                 //Delete all old text boxes
                 const myNode = document.getElementById("componentTextBox");
@@ -78,7 +67,6 @@
 
                 //Add new text box for each address component
                 var numberOfComponents = Object.size(addressComponentsList['address components']);
-                console.log(numberOfComponents);
                 for (var i = 0; i < numberOfComponents; i++){
                     //Create an input type dynamically
                     var element = document.createElement("input");
@@ -106,80 +94,73 @@
 
             function SendPayload() {
                 //create object based on address components and the information entered by user
-                var jsonRequest = {'country': selectedCountry};
                 var componentTextBox = document.getElementById("componentTextBox");
                 var inputs = document.getElementsByTagName("input");
                 var labelInputs = document.getElementsByTagName("Label");
-
+                
+                let formData = new FormData();
+                formData.append('country', selectedCountry);
                 for (var i = 0; i < inputs.length; i++){
                     //If element not empty, add to json list
                     if (!inputs[i].value== "") {
-                        jsonRequest[labelInputs[i].innerHTML]= inputs[i].value;
+                        formData.append(labelInputs[i].innerHTML, inputs[i].value);
                     }
                 }
-                console.log(jsonRequest);
 
                 //tap SearchAddress endpoint with that JSON object
-                fetch(`/searchaddress/`, jsonRequest)
+                fetch(`/searchaddress`, {method : 'post', body:formData})
                 .then(function (response) {
                     return response.json();
                 }).then(function (text) {
                     var addressList = text;
-                    console.log(addressList);
-                });
 
-                //var addressList = {'Spain': [['2', 'KIRBY WALK', 'UNIT 727', 'ZETLAND', 'NSW', '2017'], ['2', 'ATKELL AVENUE', 'UNIT 10', 'CAMPBELLTOWN', 'SA', '5074'], ['2', 'WATERWAYS STREET', 'UNIT 2008', 'WENTWORTH POINT', 'NSW', '2127'], ['2', 'WATERWAYS STREET', 'UNIT 714', 'WENTWORTH POINT', 'NSW', '2127'], ['2', 'CHISHOLM STREET', 'UNIT 906', 'WOLLI CREEK', 'NSW', '2205'], ['2', 'HARDWICK STREET', '', 'WYNNUM WEST', 'QLD', '4178'], ['2', 'BROOME STREET', 'UNIT 735', 'WATERLOO', 'NSW', '2017'], ['2', 'PARKSIDE AVENUE', 'UNIT 11', 'WOLLONGONG', 'NSW', '2500'], ['2', 'QUEEN STREET', 'UNIT 59', 'CLEVELAND', 'QLD', '4163'], ['2', 'MARTIN CRESCENT', '', 'COCONUT GROVE', 'NT', '0810'], ['2', 'NATHAN COURT', '', 'GUNN', 'NT', '0832'], ['2', 'WATERWAYS STREET', 'UNIT 1010', 'WENTWORTH POINT', 'NSW', '2127'], ['2', 'KINGSWAY PLACE', 'UNIT 34', 'TOWNSVILLE CITY', 'QLD', '4810'], ['2', 'RIDGEVISTA COURT', 'UNIT 29B', 'REEDY CREEK', 'QLD', '4227'], ['2', 'TALLEGALLA TWO TREE HILL ROAD', '', 'TALLEGALLA', 'QLD', '4340'], ['2', 'WALKER STREET', 'UNIT 21', 'WERRINGTON', 'NSW', '2747'], ['2', 'MONTSERRAT COURT', '', 'CLEAR ISLAND WATERS', 'QLD', '4226'], ['2', 'DUNSBY DRIVE', '', 'CARRARA', 'QLD', '4211'], ['2', 'TETRATHECA PLACE', '', 'SUNNYBANK HILLS', 'QLD', '4109'], ['2', 'ELKHORN DRIVE', '', 'TEWANTIN', 'QLD', '4565'], ['2', 'SARAH STREET', 'UNIT 11', 'LOGANLEA', 'QLD', '4131'], ['2', 'LOVE STREET', '', 'FAIRFIELD', 'QLD', '4103'], ['2', 'ARBOUR WAY', '', 'REGENTS PARK', 'QLD', '4118']]};
-                //var addressList = {'Spain':[]};
-                //selectedCountry = 'worldwide';
-                //var addressList = {'Spain': [['2', 'main street', '75243', 'Kuching', 'Sarawak']], 'France': [['2', 'westwood rd', 'UNIT 500', 'Dallas', 'TX', '75243']]};
-                console.log(addressList);
-                
-                //Delete old list of addresses and print new ones
-                var addressResponsesList = document.getElementById("addressResults");
-                addressResponsesList.innerHTML='';
+                    //Delete old list of addresses and print new ones
+                    var addressResponsesList = document.getElementById("addressResults");
+                    addressResponsesList.innerHTML='';
 
-                //Create labels
-                var addressSearchResultListSize = Object.size(addressList[selectedCountry]);
-                
-                if (addressSearchResultListSize == 0 && selectedCountry != 'worldwide') {
-                    var label = document.createElement("Label");
-                    label.innerHTML = "NO ADDRESSES FOUND WITH THIS INFORMATION";
-                    label.setAttribute("style", "font-weight:normal");
-                    addressResponsesList.appendChild(label);
-                }
-                else if (selectedCountry == 'worldwide') {
-                    //check for empty
-                    if (Object.size(addressList) == 0) {
+                    //Create labels
+                    var addressSearchResultListSize = Object.size(addressList[selectedCountry]);
+                    
+                    if (addressSearchResultListSize == 0 && selectedCountry != 'worldwide') {
                         var label = document.createElement("Label");
                         label.innerHTML = "NO ADDRESSES FOUND WITH THIS INFORMATION";
                         label.setAttribute("style", "font-weight:normal");
                         addressResponsesList.appendChild(label);
                     }
-
-                    //go through each country
-                    console.log(Object.size(addressList));
-                    for (var i = 0; i < Object.size(addressList); i++) {
-                        for (var j = 0; j < Object.size(addressList[Object.keys(addressList)[i]]); j++) {
+                    else if (selectedCountry == 'worldwide') {
+                        //check for empty
+                        if (Object.size(addressList) == 0) {
                             var label = document.createElement("Label");
-                            label.innerHTML = addressList[Object.keys(addressList)[i]][j] + ', ' + Object.keys(addressList)[i];
+                            label.innerHTML = "NO ADDRESSES FOUND WITH THIS INFORMATION";
                             label.setAttribute("style", "font-weight:normal");
                             addressResponsesList.appendChild(label);
-                            linebreak = document.createElement("br");
-                            addressResponsesList.appendChild(linebreak);
+                        }
+
+                        //go through each country
+                        for (var i = 0; i < Object.size(addressList); i++) {
+                            for (var j = 0; j < Object.size(addressList[Object.keys(addressList)[i]]); j++) {
+                                var label = document.createElement("Label");
+                                label.innerHTML = addressList[Object.keys(addressList)[i]][j] + ', ' + Object.keys(addressList)[i];
+                                label.setAttribute("style", "font-weight:normal");
+                                addressResponsesList.appendChild(label);
+                                linebreak = document.createElement("br");
+                                addressResponsesList.appendChild(linebreak);
+                            }
                         }
                     }
-                }
 
-                for (var i = 0; i < addressSearchResultListSize; i++) {
-                    var label = document.createElement("Label");
-                    label.innerHTML = addressList[selectedCountry][i];
-                    label.setAttribute("style", "font-weight:normal");
-                    addressResponsesList.appendChild(label);
-                    linebreak = document.createElement("br");
-                    addressResponsesList.appendChild(linebreak);
-                }
-
+                    for (var i = 0; i < addressSearchResultListSize; i++) {
+                        var label = document.createElement("Label");
+                        label.innerHTML = addressList[selectedCountry][i];
+                        label.setAttribute("style", "font-weight:normal");
+                        addressResponsesList.appendChild(label);
+                        linebreak = document.createElement("br");
+                        addressResponsesList.appendChild(linebreak);
+                    }
+                });
             }
+        
         </script>
+
     </body>
 </html>
