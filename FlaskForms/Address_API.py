@@ -63,7 +63,6 @@ class SearchAddress(Resource):
         reply = {}
         searchCriteria = request.form.to_dict()
         #some call to the database to get a list of matching addresses
-        print (searchCriteria)
         if searchCriteria['country'] == "worldwide":  
             searchCriteria.pop('country')
             givenComponents = searchCriteria.keys()
@@ -84,20 +83,6 @@ class SearchAddress(Resource):
                     cleanCountryComponents.append(component[0])
                 if all(item in cleanCountryComponents for item in givenComponents):
                     countriesToSearch.append(allCountries[count])
-            print(countriesToSearch)
-            '''
-            tables = dbConnection("SHOW TABLES")
-            for table in tables:
-                allCountries.append(table[0])
-            for country in allCountries:
-                countryComponents = dbConnection("SHOW COLUMNS FROM " + "`" + country + "`")
-                cleanCountryComponents = []
-                for component in countryComponents:
-                    cleanCountryComponents.append(component[0])
-                if all(item in cleanCountryComponents for item in givenComponents):
-                    countriesToSearch.append(country)
-            '''
-            #reply = countriesToSearch
             sqlCommandPart1 = "SELECT * FROM `"
             sqlCommandPart2 = "` WHERE "
             first = True
