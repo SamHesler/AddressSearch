@@ -24,6 +24,8 @@
                 return size;
             };
 
+            var selectedCountry = '';
+
             function PopulateDropDown() {
                 //Get countries list JSON object from API
                 fetch('/countries')
@@ -33,63 +35,78 @@
                     var countryList = text;
                     
                     var ddlCountries = document.getElementById("ddlCountries");
-
+                    selectedCountry = countryList.countries[0];
                     var size = Object.size(countryList.countries);
                     //Add json list options to DropDownList
                     for (var i = 0; i < size; i++){
+                        if( i == 0){
+                            var opt = document.createElement('option');
+                            opt.value = 0;
+                            opt.innerHTML = "Select Country";
+                            ddlCountries.add(opt)
+                        }
                         var option = document.createElement('option');
-                        option.value = i;
+                        option.value = i+1;
                         option.innerHTML = countryList.countries[i];
                         ddlCountries.options.add(option);
                 }
                 });
             }
+
             //On page load, populate the country drop down menu
             window.onload = PopulateDropDown;
-            var selectedCountry = '';
+        
+            
 
             //When country is selected change to allow for only specific address components 
             function ChangeAddressComponents() {
                 //Get selected item in dropdown
+                
                 var e = document.getElementById("ddlCountries");
                 selectedCountry = e.options[e.selectedIndex].text;
+                if(selectedCountry != "Select Country"){
+                    //Go to API and get country components
+                    fetch(`/addresscomponents/${selectedCountry}`)
+                    .then(function (response) {
+                        return response.json();
+                    }).then(function (text) {
+                        var addressComponentsList = text;
 
-                //Go to API and get country components
-                fetch(`/addresscomponents/${selectedCountry}`)
-                .then(function (response) {
-                    return response.json();
-                }).then(function (text) {
-                    var addressComponentsList = text;
+                        //Delete all old text boxes
+                        const myNode = document.getElementById("componentTextBox");
+                        myNode.innerHTML='';
 
-                //Delete all old text boxes
-                const myNode = document.getElementById("componentTextBox");
-                myNode.innerHTML='';
+                        //Add new text box for each address component
+                        var numberOfComponents = Object.size(addressComponentsList['address components']);
+                        for (var i = 0; i < numberOfComponents; i++){
+                            //Create an input type dynamically
+                            var element = document.createElement("input");
 
-                //Add new text box for each address component
-                var numberOfComponents = Object.size(addressComponentsList['address components']);
-                for (var i = 0; i < numberOfComponents; i++){
-                    //Create an input type dynamically
-                    var element = document.createElement("input");
+                            //Create labels
+                            var label = document.createElement("Label");
+                            label.innerHTML = addressComponentsList['address components'][i];
 
-                    //Create labels
-                    var label = document.createElement("Label");
-                    label.innerHTML = addressComponentsList['address components'][i];
+                            //Assign different attributes to the element. 
+                            element.setAttribute("type", "text");
+                            element.setAttribute("value", "");
+                            element.setAttribute("style", "width:200px");
 
-                    //Assign different attributes to the element. 
-                    element.setAttribute("type", "text");
-                    element.setAttribute("value", "");
-                    element.setAttribute("style", "width:200px");
+                            label.setAttribute("style", "font-weight:normal");
 
-                    label.setAttribute("style", "font-weight:normal");
+                            var textBoxes = document.getElementById("componentTextBox");
 
-                    var textBoxes = document.getElementById("componentTextBox");
-
-                    textBoxes.appendChild(label);
-                    textBoxes.appendChild(element);
-                    linebreak = document.createElement("br");
-                    textBoxes.appendChild(linebreak);
+                            textBoxes.appendChild(label);
+                            textBoxes.appendChild(element);
+                            linebreak = document.createElement("br");
+                            textBoxes.appendChild(linebreak);
+                        }
+                    });
                 }
-            });
+                else {
+                    //Delete all old text boxes
+                    const myNode = document.getElementById("componentTextBox");
+                        myNode.innerHTML='';
+                }
             }
 
             function SendPayload() {
