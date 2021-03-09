@@ -62,6 +62,8 @@ class SearchAddress(Resource):
     def post(self):
         reply = {}
         searchCriteria = request.form.to_dict()
+        if len(searchCriteria) <= 1:
+            return reply
         #some call to the database to get a list of matching addresses
         if searchCriteria['country'] == "worldwide":  
             searchCriteria.pop('country')
