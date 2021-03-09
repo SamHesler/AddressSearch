@@ -70,7 +70,6 @@ class SearchAddress(Resource):
             givenComponents = searchCriteria.keys()
             allCountries = []
             countriesToSearch = []
-
             
             commands = []
             tables = dbConnection("SHOW TABLES")
@@ -102,8 +101,6 @@ class SearchAddress(Resource):
             for count, result in enumerate(results):
                 if result != []:
                     reply[countriesToSearch[count]] = result
-
-        
         else:
             sqlCommand = "SELECT * FROM `" + searchCriteria["country"] + "` WHERE "
             first = True
